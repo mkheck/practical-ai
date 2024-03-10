@@ -1,0 +1,16 @@
+= Practical AI for the Pragmatic Developer
+
+== Maintainer
+
+* Mark Heckler
+* mailto:mark@thehecklers.com[mark@thehecklers.com]
+* mailto:mark.heckler@gmail.com[mark.heckler@gmail.com]
+* https://twitter.com/mkheck[@mkheck on Twitter/X]
+
+== Purpose
+
+This repo accompanies my session titled *"Practical AI for the Pragmatic Developer"* and includes the code written within the session and much more. Please star+watch to be notified of updates, as there will be _many_.
+
+== Related presentation
+
+https://speakerdeck.com/mkheck/practical-ai-for-the-pragmatic-developer["Practical AI for the Pragmatic Developer" presentation]
