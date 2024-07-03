@@ -1,11 +1,11 @@
 package com.thehecklers.pracai;
 
-import org.springframework.ai.azure.openai.AzureOpenAiChatClient;
 import org.springframework.ai.azure.openai.AzureOpenAiChatOptions;
-import org.springframework.ai.chat.ChatResponse;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
@@ -19,12 +19,12 @@ import java.util.Map;
 
 @RestController
 public class PracAiController {
-    private final AzureOpenAiChatClient client;
+    private final ChatClient client;
 
     private final List<Message> buffer = new ArrayList<>();
 
-    public PracAiController(AzureOpenAiChatClient client) {
-        this.client = client;
+    public PracAiController(ChatClient.Builder builder) {
+        this.client = builder.build();
     }
 
     @GetMapping
@@ -40,25 +40,34 @@ public class PracAiController {
             promptMessages.add(sysMessage);
         }
 
-        ChatResponse response = client.call(new Prompt(promptMessages));
+        ChatResponse response = client.prompt(new Prompt(promptMessages))
+                .call()
+                .chatResponse();
+
         buffer.add(response.getResult().getOutput());
+
         return response;
     }
 
     @GetMapping("/template")
     public String useTemplate(@RequestParam String type, @RequestParam String topic) {
-        PromptTemplate template = new PromptTemplate("Write me a {type} about {topic}");
-        Prompt prompt = template.create(Map.of("type", type, "topic", topic));
-        return client.call(prompt).getResult().getOutput().getContent();
+        var template = new PromptTemplate("Write me a {type} about {topic}",
+                Map.of("type", type, "topic", topic));
+
+        return client.prompt(template.create())
+                .call()
+                .content();
     }
 
     @GetMapping("/weather")
     public AssistantMessage weather(@RequestParam(defaultValue = "Philadelphia") String location) {
-        return client.call(new Prompt(
+        return client.prompt(new Prompt(
                         new UserMessage("What is the weather in " + location),
                         AzureOpenAiChatOptions.builder()
                                 .withFunction("weatherFunction")
                                 .build()))
+                .call()
+                .chatResponse()
                 .getResult()
                 .getOutput();
     }
@@ -68,12 +77,14 @@ public class PracAiController {
                         @RequestParam(defaultValue = "Philadelphia") String location) {
         var assistantMessage = weather(location);
 
-        PromptTemplate template = new PromptTemplate("{message} in {location}");
-        Message userMessage = template.createMessage(Map.of("message", message, "location", location));
+//        PromptTemplate template = new PromptTemplate("{message} in {location}");
+//        Message userMessage = template.createMessage(Map.of("message", message, "location", location));
+        var template = new PromptTemplate("{message} in {location}",
+                Map.of("message", message, "location", location));
+        Message userMessage = template.createMessage();
 
-        return client.call(new Prompt(List.of(assistantMessage, userMessage)))
-                .getResult()
-                .getOutput()
-                .getContent();
+        return client.prompt(new Prompt(List.of(assistantMessage, userMessage)))
+                .call()
+                .content();
     }
 }

@@ -11,10 +11,12 @@ import java.util.function.Function;
 public class PracaiApplication {
 	@Bean
 	@Description("What is the weather in location")
-	public Function<WxRequest, WxResponse> weatherFunction() {
+	public Function<WxRequest, String> weatherFunction() {
 		return new WeatherService();
 	}
-
+//	public Function<WxRequest, WxResponse> weatherFunction() {
+//		return new WeatherService();
+//	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(PracaiApplication.class, args);
